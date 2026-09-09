@@ -54,8 +54,13 @@ def render_md(data):
     if not ths:
         lines.append("> 当日无同花顺新闻（或接口暂未更新）")
     for x in ths[:12]:
-        lines.append("- {time} {title}".format(
-            time=(x.get("time") or "")[:16], title=x.get("title") or ""))
+        digest = (x.get("digest") or "").strip()
+        if digest:
+            lines.append("- {time} **{title}**：{digest}".format(
+                time=(x.get("time") or "")[:16], title=x.get("title") or "", digest=digest[:120]))
+        else:
+            lines.append("- {time} {title}".format(
+                time=(x.get("time") or "")[:16], title=x.get("title") or ""))
     lines.append("\n> 4位同花顺大V主页为JS SPA，线上无法抓取，需人工每日WebFetch补录观点。")
 
     # 4) 券商6家研报
@@ -66,7 +71,16 @@ def render_md(data):
             continue
         lines.append("- **{0}**：".format(b["name"]))
         for r in b["reports"][:6]:
-            lines.append("  - {time} {title}".format(time=r["time"][:10], title=r["title"][:70]))
+            meta = []
+            if r.get("rating"):
+                meta.append(r["rating"])
+            if r.get("author"):
+                meta.append("研报作者: {0}".format(r["author"]))
+            if r.get("pages"):
+                meta.append("{0}页".format(r["pages"]))
+            suffix = "（" + "，".join(meta) + "）" if meta else ""
+            lines.append("  - {time} {title}{suffix}".format(
+                time=r["time"][:10], title=r["title"][:70], suffix=suffix))
 
     # 5) 雪球 10 源
     lines.append("\n## 雪球 10 源观点\n")

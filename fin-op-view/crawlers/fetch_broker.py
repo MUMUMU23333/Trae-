@@ -55,6 +55,9 @@ def fetch(target=None):
                 grouped[b["name"]].append({
                     "title": r.get("title", ""),
                     "time": (r.get("publishDate") or "")[:16],
+                    "rating": r.get("emRatingName") or r.get("sRatingName") or "",
+                    "pages": r.get("attachPages") or "",
+                    "author": (r.get("researcher") or "")[:40],
                 })
                 break
     return [{"name": k, "orgSName": v.get("orgSName"), "reports": grouped[k]}
