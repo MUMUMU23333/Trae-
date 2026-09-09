@@ -109,9 +109,15 @@ def main():
         return 0
 
     print("== 推送企微 ==")
-    r = push_wecom.push_markdown(digest + "\n\n（完整版存 Actions Artifact）")
-    print("push:", r)
-    return 0 if r.get("ok") else 2
+    r = push_wecom.push_markdown(digest + "\n\n（完整版 HTML 见下一条文件消息）")
+    print("push md:", r)
+    ok = r.get("ok", False)
+    if ok:
+        print("== 推送 HTML 文件 ==")
+        fr = push_wecom.push_file(html_path)
+        print("push file:", fr)
+        ok = ok and fr.get("ok", False)
+    return 0 if ok else 2
 
 
 if __name__ == "__main__":
