@@ -1,0 +1,36 @@
+{
+  "version": "v3.2",
+  "updated": "2026-08-10",
+  "note": "迁移自 WorkBuddy dav_weight_v2.json。唯一权威权重表（知乎/多平台大V），weight_of/hits_of 均读此文件，升级 json 即自动生效。",
+  "method": "回测 v3.2：双窗口合并（历史2025-01~2026-05自动关键词77样本 + 近期2026-06~08人工85样本 = 162样本）+ 贝叶斯收缩",
+  "formula": "W3 = v3权重 × 板块系数(有色/黄金×1.3, 半导体回避×1.2, 通信×1.0, 银行×0.8, CRO×0.8, 创业板×1.0) × 方向系数(一致1.0/相反0.5) × 实盘1.1 × 看空1.2 × 转向1.2",
+  "accounts": {
+    "龙头18868": {"weight": 3, "posterior": 0.67, "hits": 4, "samples": 5},
+    "派大星皮皮": {"weight": 3, "posterior": 0.63, "hits": 3, "samples": 4},
+    "高比高": {"weight": 3, "posterior": 0.67, "hits": 2, "samples": 2},
+    "基克的财猫": {"weight": 3, "posterior": 0.75, "hits": 4, "samples": 4},
+    "黑化许文彪": {"weight": 3, "posterior": 0.75, "hits": 4, "samples": 4},
+    "萧铭meaning": {"weight": 3, "posterior": 0.71, "hits": 3, "samples": 3, "turn": "科技→有色"},
+    "攻城狮": {"weight": 3, "posterior": 0.71, "hits": 3, "samples": 3},
+    "黄彦臻": {"weight": 3, "posterior": 0.63, "hits": 3, "samples": 4},
+    "手握柔荑": {"weight": 2, "posterior": 0.63, "hits": 3, "samples": 4},
+    "水又三人禾": {"weight": 2, "posterior": 0.71, "hits": 3, "samples": 3},
+    "死月半月半": {"weight": 2, "posterior": 0.57, "hits": 2, "samples": 3},
+    "启四": {"weight": 2, "posterior": 0.57, "hits": 2, "samples": 3},
+    "曹多鱼": {"weight": 2, "posterior": 0.57, "hits": 2, "samples": 3},
+    "航哥": {"weight": 2, "posterior": 0.43, "hits": 1, "samples": 3},
+    "羊村里最快的羊": {"weight": 2, "posterior": 0.6, "hits": 1, "samples": 1, "cap": "samples<2"},
+    "向阳": {"weight": 1, "posterior": 0.5, "hits": 1, "samples": 2},
+    "思哲": {"weight": 1, "posterior": 0.5, "hits": 1, "samples": 2},
+    "么瑞与小A": {"weight": 1, "posterior": 0.33, "hits": 0, "samples": 2},
+    "夜色": {"weight": 1, "posterior": 0.5, "hits": 1, "samples": 2},
+    "Deep Van": {"weight": 1, "posterior": 0.5, "hits": 1, "samples": 2},
+    "MR Dang": {"weight": 1, "posterior": 0.6, "hits": 1, "samples": 1, "cap": "samples<2"}
+  },
+  "consensus_rule": {
+    "trigger": "看好或看空同一板块人数>=3",
+    "confidence": "多方ΣW >= 空方ΣW×1.5=高置信；1.0~1.5=中；<1.0=低置信/高权重反向",
+    "crowding": "单方向参与>=5人或ΣW>=15 → 标⚠️拥挤",
+    "exclude": ["不追高", "减仓", "持有不动", "观望", "无更新"]
+  }
+}

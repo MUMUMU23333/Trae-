@@ -1,0 +1,4 @@
+# fin-op-view 不提交：产物与任何密钥文件
+output/
+*.secret
+.env

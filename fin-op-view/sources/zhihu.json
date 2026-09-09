@@ -1,0 +1,27 @@
+{
+  "updated": "2026-09-10",
+  "note": "知乎 21 源（迁移自 WorkBuddy rss_sources_zhihu.json）。抓取通道：x-zse-96 v3 签名 + ZHIHU_COOKIE env；cookie 失效时降级标注需人工。权重在 weights.json，不在此重复。",
+  "accounts": [
+    {"name": "高比高（xiu-cai-11）", "zhihu_id": "xiu-cai-11"},
+    {"name": "夜色（ye-se-87-2）", "zhihu_id": "ye-se-87-2"},
+    {"name": "基克的财猫（53-72-17-28-41）", "zhihu_id": "53-72-17-28-41"},
+    {"name": "龙头18868（18868-42）", "zhihu_id": "18868-42"},
+    {"name": "启四（zhang-kuo-ye）", "zhihu_id": "zhang-kuo-ye"},
+    {"name": "手握柔荑（shou-wo-rou-ti）", "zhihu_id": "shou-wo-rou-ti"},
+    {"name": "萧铭meaning（dashixiongmofan）", "zhihu_id": "dashixiongmofan"},
+    {"name": "黑化许文彪（deng-cheng-chen-17）", "zhihu_id": "deng-cheng-chen-17"},
+    {"name": "向阳（gu-bei-98-59）", "zhihu_id": "gu-bei-98-59"},
+    {"name": "攻城狮（wang-wen-jie-83-95）", "zhihu_id": "wang-wen-jie-83-95"},
+    {"name": "航哥分红退休之路（13-75-44-20）", "zhihu_id": "13-75-44-20"},
+    {"name": "派大星皮皮（xiao-peng-61-47）", "zhihu_id": "xiao-peng-61-47"},
+    {"name": "思哲（liu-si-zhe）", "zhihu_id": "liu-si-zhe"},
+    {"name": "曹多鱼（cao-hao-peng-85）", "zhihu_id": "cao-hao-peng-85"},
+    {"name": "死月半月半（fang-wei-chen-55）", "zhihu_id": "fang-wei-chen-55"},
+    {"name": "么瑞与小A（meray）", "zhihu_id": "meray"},
+    {"name": "Deep Van（yang-lei-96-72）", "zhihu_id": "yang-lei-96-72"},
+    {"name": "黄彦臻（huang-wei-yan-30）", "zhihu_id": "huang-wei-yan-30"},
+    {"name": "水又三人禾（10-64-17-85-40）", "zhihu_id": "10-64-17-85-40"},
+    {"name": "羊村里最快的羊（7-78-14-6）", "zhihu_id": "7-78-14-6"},
+    {"name": "MR Dang（mr-dang-77）", "zhihu_id": "mr-dang-77"}
+  ]
+}

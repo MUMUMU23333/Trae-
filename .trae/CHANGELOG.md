@@ -13,6 +13,18 @@
 
 ---
 
+## 2026-09-10 - fin-op-view 管线:权重脚本迁移到 GitHub Actions
+
+- **对象**: fin-op-view/ + .github/workflows/daily-op-view.yml + .trae/documents/fin-op-view-github-actions.md
+- **改动**: 新建 sources/weights.json(dav_weight_v2 v3.2 唯一权威+consensus_rule) 与 sources/zhihu.json(21账户);新建 libs/weights.py(weight_of主名+前缀回退/hits_of/consensus_converge多空收敛);新建 crawlers/fetch_zhihu.py(移植x-zse-96 v3签名+ZHIHU_COOKIE env,失效降级);run.py加[5/5]知乎加权源、render.py加知乎加权段、workflow加ZHIHU_COOKIE secret.
+- **理由**: 用户要求把权重脚本迁移到 GitHub Actions 管线.
+- **结果**: 本地验证全通过--weights匹配/知乎无cookie降级21源/run.py --no-push出产物.
+
+### 补充（执行阶段）签名移植纠错
+- **改动**: fetch_zhihu.py 签名实现偏离原版——缺失 `_block_x`、`_pre_process` 未用 random 盐与 XOR 修正、`_block_r` 返回语义错、**ZB 表少 1 项(255/256)致索引越界**。已整体替换为原版完整实现并补全 ZB。
+- **理由**: 首轮真实抓取 21 源仅 4 源 ok，余报 `list index out of range`；修复后全部通。
+- **结果**: 带真实 cookie 实测 **21/21 全部抓取成功**，加权段（w3/w2）正确渲染入 md。设计文档「实施状态」同步标记。
+
 ## 2026-09-09 — 【系统级】建立每团独立更新日志
 - **对象**: 新增 `.trae/rules/changelogs/` 目录，12 团各建一份统一格式日志；本文件改为总索引。
 - **改动**: ① 创建 12 份 `changelogs/<团名>.md`，统一头部说明「日期 | 改动 | 理由 | 结果」，并回填各自历史；② 全局 CHANGELOG 改为总索引 + 索引链接；③ 约定此后改哪个团就更新哪份日志。

@@ -1,0 +1,16 @@
+{
+  "note": "雪球 10 源（迁移自 WorkBuddy rss_sources_other.json accounts/platform=雪球）。抓到通道：status API + XUEQIU_COOKIE env；WAF 触发时降级标注需人工 WebFetch。",
+  "updated": "2026-09-10",
+  "accounts": [
+    {"name": "海哥亡命A股", "uid": "3354236440", "weight": 1, "live": true, "note": "实盘换股同步公开、抄作业赛道头部；港股/中概/有色/创新药/新消费"},
+    {"name": "此生远离白", "uid": "1748778292", "weight": 1, "live": true, "note": "反指体质/悟道散户，实盘透明，大动作常与次日走势相反"},
+    {"name": "省心省力", "uid": "6876843497", "weight": 1, "live": true, "note": "老登/红利专家；宁德时代大仓位做T；医药CRO/CXO景气；实盘融资账户"},
+    {"name": "博士王神经", "uid": "2616724341", "weight": 1, "live": true, "note": "黄金波段；科创50ETF 588080；老登（长江电力观察仓）；银行基本面担忧"},
+    {"name": "轮船小水手", "uid": "6719117336", "weight": 1, "live": true, "note": "市场流动性/跷跷板研判；抄底创业板ETF；港股阿里/中概抄作业"},
+    {"name": "斯托伯的天空", "uid": "9493911686", "weight": 1, "live": false, "note": "内容以动态/评论为主，观点密度较低"},
+    {"name": "value望宸", "uid": "6730074573", "weight": 1, "live": true, "note": "价值+黄金有色+医药CRO深度；科技7.10见顶论"},
+    {"name": "舒九", "uid": "9083122550", "weight": 1, "live": false, "note": "美股科技+存储；SpaceX财报拆解；药明康德；3TQQQ"},
+    {"name": "鸡精锦鲤", "uid": "5278830487", "weight": 1, "live": false, "note": "市场情绪/心理按摩；光通信；SA存储互联研报；央行购金"},
+    {"name": "ETF海龟", "uid": "2150600161", "weight": 1, "live": true, "note": "ETF组合ZH3379132调仓；红利组合；纳指溢价；科技存储周期论"}
+  ]
+}

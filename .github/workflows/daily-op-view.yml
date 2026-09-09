@@ -1,0 +1,40 @@
+name: fin-op-view
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions 用 UTC；-8h 得东八区
+    - cron: "30 7 * * *"   # 15:30 收盘后
+    - cron: "30 13 * * *"  # 21:30 晚间
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TZ: Asia/Shanghai
+      PYTHONIOENCODING: utf-8
+      XUEQIU_COOKIE: ${{ secrets.XUEQIU_COOKIE }}
+      ZHIHU_COOKIE: ${{ secrets.ZHIHU_COOKIE }}
+      WECOM_KEY: ${{ secrets.WECOM_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run pipeline (fetch all → render → push)
+        run: |
+          python run.py
+        working-directory: fin-op-view
+        continue-on-error: true   # 部分源失效/无 Secret 也允许保存产物
+
+      - name: Upload artifacts (md+html+raw)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: op-view-output
+          path: fin-op-view/output/
+          retention-days: 14

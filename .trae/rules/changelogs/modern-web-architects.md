@@ -13,3 +13,8 @@
 - **改动**: 交付标准新增无障碍——关键页面满足对比度、键盘可达与语义标签，基础交互可纯键盘完成。
 - **理由**: 遍历体检 🟡 级：对比度、键盘可达、语义标签缺失。
 - **结果**: 高端页面补齐可用性底线。
+
+## 2026-09-09 | 修复插件实现层 Skill 断链
+- **改动**: 修正 `plugins/modern-web-architects/plugin.json` 的 `skills` 数组——移除不存在的 `./skills/modern-web-guidance` 与 `./skills/webapp-testing`，仅保留实际存在的 `ui-ux-pro-max` 与 `frontend-design`。
+- **理由**: plugin.json 引用了本插件内不存在的 skill 路径（modern-web-guidance 实际位于独立插件 modern-web-guidance-plugin 下），会导致插件加载失败。
+- **结果**: 插件实现层引用与磁盘文件对齐，无断链，加载正常。

@@ -1,0 +1,12 @@
+{
+  "note": "券商 6 家（高胜率金股组合，2025 年度排名，财联社/每市统计）。抓取通道：东财 reportapi 按 orgSName 模糊过滤当日研报。",
+  "updated": "2026-09-10",
+  "brokers": [
+    {"name": "国元证券", "orgSName": "国元证券", "rank_2025": 1, "win_2025": "84.08%", "specialty": "有色/小金属(钨)、机械/汽车零部件"},
+    {"name": "东北证券", "orgSName": "东北证券", "rank_2025": 2, "win_2025": "68.38%", "specialty": "AI硬件/PCB/散热、黄金"},
+    {"name": "开源证券", "orgSName": "开源证券", "rank_2025": 3, "win_2025": "67.1%", "specialty": "通信/光模块、AI算力"},
+    {"name": "华鑫证券", "orgSName": "华鑫证券", "rank_2025": 4, "win_2025": "62.23%", "specialty": "市场轮动"},
+    {"name": "东兴证券", "orgSName": "东兴证券", "rank_2025": 5, "win_2025": "61.98%", "specialty": "通信/光模块、电子"},
+    {"name": "招商证券", "orgSName": "招商证券", "rank_2025": 6, "win_2025": "60.5%", "specialty": "策略/宽基"}
+  ]
+}
