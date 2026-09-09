@@ -100,16 +100,15 @@ def main():
     print("\nSAVED:", md_path)
     print("SAVED:", html_path)
 
-    # md 摘要（前若干行）给企微
-    digest_lines = md.split("\n")
-    digest = "\n".join(digest_lines[:40])
+    # 简版结论（≤280字，企微文字快览）；详细全量走完整 HTML 文件
+    digest = render.render_summary(data)
 
     if args.no_push:
         print("[skip] --no-push，未推送企微")
         return 0
 
-    print("== 推送企微 ==")
-    r = push_wecom.push_markdown(digest + "\n\n（完整版 HTML 见下一条文件消息）")
+    print("== 推送企微（简版结论） ==")
+    r = push_wecom.push_markdown(digest)
     print("push md:", r)
     ok = r.get("ok", False)
     if ok:

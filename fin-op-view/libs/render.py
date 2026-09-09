@@ -24,6 +24,50 @@ def _fmt_amount(amt):
     return "成交额%.0f亿" % (v / 10000.0)
 
 
+def render_summary(data, limit=280):
+    """简版结论（企微文字快览，≤limit 字）：盘面锚定 + 当日要闻 + 券商亮点 + 知乎加权 top。
+    详细全量内容走完整 md / HTML 文件。"""
+    out = []
+    # 1) 盘面锚定
+    tenc = data.get("tencent", [])
+    if tenc:
+        pieces = []
+        for it in tenc[:4]:
+            pct = it.get("chg_pct") or "0.00"
+            try:
+                arrow = "▲" if float(pct) > 0 else ("▼" if float(pct) < 0 else "—")
+            except ValueError:
+                arrow = "—"
+            amt = _fmt_amount(it.get("amount"))
+            pieces.append("%s %s%s%%(%s)" % (it["name"], arrow, pct, amt))
+        out.append("【盘面】" + " | ".join(pieces))
+    # 2) 当日要闻（同花顺 top2）
+    ths = data.get("ths", [])
+    if ths:
+        out.append("【要闻】" + "；".join((x.get("title") or "")[:30] for x in ths[:2]))
+    # 3) 券商亮点（有研报机构数 + 首篇标题）
+    brs = [b for b in data.get("brokers", []) if b.get("reports")]
+    if brs:
+        tot = sum(len(b["reports"]) for b in brs)
+        top = brs[0]["reports"][0]["title"]
+        out.append("【研报】%d家机构共%d篇；代表：%s" % (len(brs), tot, top[:35]))
+    # 4) 知乎加权 top（权重最大 3 位观点首句）
+    zh = data.get("zhihu", {})
+    acts = [a for a in zh.get("accounts", []) if a.get("items")]
+    if acts:
+        top = sorted(acts, key=lambda a: -(a.get("weight") or 1))[:3]
+        t = "；".join("(%s)%s" % (a["name"].split("（")[0][:8], a["items"][0]["text"][:28]) for a in top)
+        out.append("【大V】" + t)
+    # 5) 降级提醒
+    warns = [w for w in (data.get("warnings") or []) if "人工" in w or "降级" in w]
+    for w in warns[:2]:
+        out.append("【注意】" + w[:40])
+    text = "\n".join(out)
+    if len(text) > limit:
+        text = text[:limit].rsplit("\n", 1)[0]
+    return text + "\n\n（详细版 HTML 见下一条文件消息）"
+
+
 def render_md(data):
     date, ts = data["date"], data["ts"]
     lines = [HEADER.format(date=date, ts=ts)]
