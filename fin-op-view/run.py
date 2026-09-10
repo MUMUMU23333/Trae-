@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from libs import common
 from libs import push_wecom
 from libs import render
-from crawlers import fetch_tencent, fetch_ths, fetch_broker, fetch_xueqiu, fetch_zhihu
+from crawlers import fetch_tencent, fetch_ths, fetch_broker, fetch_xueqiu, fetch_zhihu, fetch_ths_bigv
 
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
@@ -65,7 +65,20 @@ def main():
         xueqiu = {"accounts": [], "note": str(e)}
         print("   FAIL", e)
 
-    print("== [5/5] 知乎 21 源（加权）==")
+    print("== [5/6] 同花顺 4 位大V ==")
+    try:
+        ths_bigv = fetch_ths_bigv.fetch()
+        n_ok = sum(1 for a in ths_bigv.get("accounts", []) if a["items"])
+        print("   accounts:", len(ths_bigv.get("accounts", [])), "| 有观点:", n_ok)
+    except Exception as e:
+        ths_bigv = {"accounts": [], "note": str(e)}
+        print("   FAIL", e)
+    for a in ths_bigv.get("accounts", []):
+        if not a["items"]:
+            ths_bigv.setdefault("note", "")
+            ths_bigv["note"] += "[%s]%s\n" % (a["name"], a["msg"])
+
+    print("== [6/6] 知乎 21 源（加权） ==")
     try:
         zhihu = fetch_zhihu.fetch()
         n_ok = sum(1 for a in zhihu.get("accounts", []) if a["items"])
@@ -81,11 +94,12 @@ def main():
         "date": date, "ts": ts,
         "tencent": tencent, "ths": ths,
         "brokers": brokers, "xueqiu": xueqiu, "zhihu": zhihu,
+        "ths_bigv": ths_bigv,
         "warnings": warnings,
     }
 
     md = render.render_md(data)
-    html = render.render_html(md, date)
+    html = render.render_html(data)
 
     os.makedirs(OUT_DIR, exist_ok=True)
     md_path = os.path.join(OUT_DIR, "多平台大V财经观点统计_%s.md" % date)

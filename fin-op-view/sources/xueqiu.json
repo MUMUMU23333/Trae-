@@ -1,5 +1,5 @@
 {
-  "note": "雪球 10 源（迁移自 WorkBuddy rss_sources_other.json accounts/platform=雪球）。抓到通道：status API + XUEQIU_COOKIE env；WAF 触发时降级标注需人工 WebFetch。",
+  "note": "雪球 10 源。线上: 带 XUEQIU_COOKIE 直连 status API，WAF 触发则降级标注；线上(无浏览器)无法绕过阿里云 WAF('jsb_ph' 指纹墙)。本地补录: 用 cdp_capture.py 复用已登录 Chrome 在浏览器内 fetch status API（已验证 10/10 成功），结果写入 output/xueqiu_cdp.json。",
   "updated": "2026-09-10",
   "accounts": [
     {"name": "海哥亡命A股", "uid": "3354236440", "weight": 1, "live": true, "note": "实盘换股同步公开、抄作业赛道头部；港股/中概/有色/创新药/新消费"},

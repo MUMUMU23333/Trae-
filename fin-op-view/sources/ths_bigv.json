@@ -1,0 +1,10 @@
+{
+  "note": "同花顺 4 位大V（同顺号创作者）。在线抓取: 走 userPost API(userPost/?first=1&userid=) + curl_cffi Chrome 指纹, 无 WAF 无需登录。已验证张明辉(9936457) 返回 5 条; 其余 3 位内容发布在股吧话题流(Vue SPA)，线上无法直抓，由 cdp_capture.py 本地 CDP 补录。",
+  "updated": "2026-09-10",
+  "accounts": [
+    {"name": "张明辉", "uid": "9936457", "weight": 1, "live": true, "note": "23.1w粉五届人气奖，每日马前炮次日预测自验证"},
+    {"name": "全能的野人", "uid": "639669238", "weight": 1, "live": true, "note": "57.7w粉认证，原抖音迁移；A股每日复盘/交易纪律"},
+    {"name": "纳指水蛭", "uid": "661387218", "weight": 1, "live": true, "note": "纳指ETF长期持有/美股指数"},
+    {"name": "我的人生如股票", "uid": "295155932", "weight": 1, "live": true, "note": "做T王者；纳指科技ETF/溢价"}
+  ]
+}
