@@ -52,21 +52,41 @@ def _zh_views(data):
 
 # ---------- 企微简版结论（≤300字） ----------
 
-def render_summary(data, limit=280):
+def render_summary(data, limit=800):
     """简版结论（企微文字快览）：当日共识 + 大V加权top + 盘面 + 要闻 + 研报。"""
     out = []
     views = _zh_views(data)
     ov = insight.build_overview(views)
     if ov["conclusion"]:
-        out.append("【共识】" + ov["conclusion"].replace("**", ""))
-    # 大V加权 top3（方向 + 一句话）
+        # 提取或补全共识说明与拥挤度
+        conclusion_text = ov["conclusion"].replace("**", "")
+        # 计算多空权重分
+        bull_w = sum(v.get("weight", 1) for v in views if v.get("direction") == "bull")
+        bear_w = sum(v.get("weight", 1) for v in views if v.get("direction") == "bear")
+        warning = " ⚠️注意拥挤，过热方向勿追高。" if bull_w >= 6.0 else (" 💡极度悲观区域，防恐慌杀跌后的逆向黄金底。" if bear_w >= 6.0 else "")
+        out.append("【共识】" + conclusion_text + warning)
+
+    # 大V加权 top（方向 + 核心论据）
     if views:
-        top = sorted(views, key=lambda v: -(v["weight"] or 1))[:3]
-        t = "；".join("(%s)%s" % (
-            v["name"].split("（")[0][:6],
-            ("%s %s" % (v["point"][:20], "看多" if v["direction"] == "bull" else ("看空" if v["direction"] == "bear" else ""))).strip()) for v in top)
-        out.append("【大V】" + t)
-    # 盘面
+        top = sorted(views, key=lambda v: -(v.get("weight") or 1))[:4]
+        t_items = []
+        for v in top:
+            name = v["name"].split("（")[0][:8]
+            point = v.get("point", "").strip()[:35]
+            dir_str = "看多" if v.get("direction") == "bull" else ("看空" if v.get("direction") == "bear" else "中性")
+            t_items.append("(%s)%s %s" % (name, point, dir_str))
+        out.append("【大V】" + "；".join(t_items))
+    elif data.get("ths_bigv", {}).get("accounts"):
+        # 降级：从同花顺大V中提取有效观点
+        tb_items = []
+        for a in data["ths_bigv"]["accounts"]:
+            if a.get("items"):
+                first = a["items"][0]
+                tb_items.append("(%s)%s" % (a["name"][:8], first.get("title", "")[:35]))
+        if tb_items:
+            out.append("【大V】" + "；".join(tb_items[:4]))
+
+    # 盘面行情
     tenc = data.get("tencent", [])
     if tenc:
         pieces = []
@@ -76,19 +96,18 @@ def render_summary(data, limit=280):
             name = it["name"].replace("指数", "").replace("深证成指", "深成").replace("沪深300", "沪深300")
             pieces.append("%s%s%s%%" % (name[:5], arrow, pct))
         out.append("【盘面】" + " | ".join(pieces))
+
     # 要闻
     ths = data.get("ths", [])
     if ths:
-        out.append("【要闻】" + "；".join((x.get("title") or "")[:26] for x in ths[:2]))
+        out.append("【要闻】" + "；".join((x.get("title") or "")[:35] for x in ths[:2]))
+
     # 研报
     brs = [b for b in data.get("brokers", []) if b.get("reports")]
     if brs:
         tot = sum(len(b["reports"]) for b in brs)
-        out.append("【研报】%d家共%d篇；代表：%s" % (len(brs), tot, brs[0]["reports"][0]["title"][:30]))
-    # 降级提醒
-    warns = [w for w in (data.get("warnings") or []) if "人工" in w or "降级" in w]
-    for w in warns[:1]:
-        out.append("【注意】" + w[:30])
+        out.append("【研报】%d家共%d篇；代表：%s" % (len(brs), tot, brs[0]["reports"][0]["title"][:40]))
+
     text = "\n".join(out)
     if len(text) > limit:
         text = text[:limit].rsplit("\n", 1)[0]
