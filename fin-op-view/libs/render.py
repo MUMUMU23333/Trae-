@@ -184,96 +184,291 @@ def render_md(data):
         src = data.get(sec_key, {})
         if isinstance(src, dict) and src.get("accounts"):
             act = [a for a in src["accounts"] if a["items"]]
-            if act:
-                for a in sorted(act, key=lambda x: -x["weight"]):
-                    lines.append("- **{name}（w{weight}）**：{first}".format(
-                        name=a["name"], weight=a["weight"], first=a["items"][0]["text"][:90]))
-                    for it in a["items"][1:3]:
-                        lines.append("    · {0}".format(it["text"][:70]))
-            else:
-                for a in src["accounts"]:
-                    lines.append("- **{name}**：{status} {msg}".format(
-                        name=a["name"], status=a["status"], msg=a.get("msg", "")))
-        if isinstance(src, dict) and src.get("note"):
-            lines.append("\n> {0}".format(src["note"]))
-
-    lines.append("\n---\n> Actions 自动生成，记录归档见 Artifact。")
-    return "\n".join(lines)
-
-
-# ---------- HTML v2（专业卡片 Dashboard） ----------
+      # ---------- HTML v2（专业金融 Terminal Dashboard） ----------
 
 CSS = """
-:root{--bg:#0b0f1a;--card:#121a2c;--card2:#0f1626;--line:#1f2b44;--txt:#e8ecf8;--dim:#8a94b0;
---blue:#5b8cff;--green:#2fd67f;--red:#ff5d6c;--gold:#ffc857;--purple:#a78bfa}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);
-color:var(--txt);line-height:1.65;padding:24px;max-width:1080px;margin:0 auto}
-.masthead{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;
-border-bottom:2px solid var(--blue);padding-bottom:14px;margin-bottom:20px}
-.masthead h1{font-size:1.45rem;color:#fff;letter-spacing:.5px}
-.masthead .sub{color:var(--dim);font-size:.82rem;margin-top:4px}
-.tag{display:inline-block;background:rgba(91,140,255,.14);color:var(--blue);border:1px solid rgba(91,140,255,.35);
-border-radius:20px;padding:3px 12px;font-size:.78rem}
-.warn-tag{background:rgba(255,197,87,.12);color:var(--gold);border-color:rgba(255,197,87,.35)}
-.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
-.sec-title{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:600;margin-bottom:14px;color:#fff}
-.sec-title .ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
-font-size:.9rem;background:rgba(91,140,255,.15)}
-.conclusion{background:linear-gradient(135deg,rgba(91,140,255,.14),rgba(167,139,250,.10));
-border-left:4px solid var(--blue);border-radius:10px;padding:14px 18px;font-size:.98rem;color:#dbe4ff;margin-bottom:14px}
-.conclusion b{color:#fff}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.kpi{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.kpi .name{color:var(--dim);font-size:.8rem}
-.kpi .num{font-size:1.3rem;font-weight:700;margin:4px 0 2px}
-.kpi .pct{font-size:.95rem;font-weight:600}
-.kpi .amt{color:var(--dim);font-size:.75rem;margin-top:2px}
-.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--dim)}
-.con-row{display:flex;align-items:center;gap:14px;padding:9px 4px;border-bottom:1px dashed var(--line)}
-.con-row:last-child{border-bottom:none}
-.con-row .cs{width:110px;font-weight:600;color:#cdd7f5;flex-shrink:0}
-.bar-wrap{flex:1;display:flex;gap:2px;height:14px;border-radius:4px;overflow:hidden;background:var(--card2)}
-.bar-b{background:var(--green)}.bar-s{background:var(--red)}.bar-n{background:var(--line)}
-.con-row .stat{width:150px;text-align:right;color:var(--dim);font-size:.78rem;flex-shrink:0}
-.v-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.vcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;position:relative}
-.vcard .top{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
-.avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-font-size:.72rem;font-weight:700;color:#0b0f1a;flex-shrink:0}
-.vcard .who{font-weight:600;color:#fff;font-size:.9rem}
-.badge{font-size:.68rem;padding:1px 8px;border-radius:10px;border:1px solid}
-.b-w{background:rgba(255,197,87,.12);color:var(--gold);border-color:rgba(255,197,87,.4)}
-.b-{background:rgba(91,140,255,.12);color:var(--blue);border-color:rgba(91,140,255,.4)}
-.bull{background:rgba(47,214,127,.12);color:var(--green);border-color:rgba(47,214,127,.4)}
-.bear{background:rgba(255,93,108,.12);color:var(--red);border-color:rgba(255,93,108,.4)}
-.neutral{background:rgba(138,148,176,.12);color:var(--dim);border-color:rgba(138,148,176,.4)}
-.vcard .point{font-size:.86rem;color:#d3daef}
-.vcard .time{color:var(--dim);font-size:.72rem;margin-top:6px}
-.news{display:flex;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);font-size:.86rem}
-.news:last-child{border-bottom:none}
-.news .t{color:var(--dim);font-size:.75rem;white-space:nowrap;flex-shrink:0;padding-top:1px}
-.news b{color:#e8ecf8}
-.rpt{margin-bottom:12px}
-.rpt .org{font-weight:600;color:#cdd7f5;margin-bottom:6px}
-.rpt li{list-style:none;padding:5px 0 5px 14px;border-left:2px solid var(--line);margin-bottom:6px;
-font-size:.85rem;color:#c6cfe8}
-.rpt li b{color:#fff}
-.meta{color:var(--dim);font-size:.75rem;margin-left:6px}
-.foot{text-align:center;color:var(--dim);font-size:.75rem;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
-@media(max-width:640px){.con-row .cs{width:80px}.con-row .stat{width:110px}}
+:root {
+  --bg: #070a12;
+  --card: #0d1424;
+  --card-sub: #111a30;
+  --card-hover: #16223f;
+  --border: #1c2b4d;
+  --border-sub: #253863;
+  --txt: #f0f4ff;
+  --txt-dim: #7e8ea8;
+  --txt-muted: #52607a;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.25);
+  --bull: #10b981;
+  --bull-bg: rgba(16, 185, 129, 0.12);
+  --bull-border: rgba(16, 185, 129, 0.35);
+  --bear: #ef4444;
+  --bear-bg: rgba(239, 68, 68, 0.12);
+  --bear-border: rgba(239, 68, 68, 0.35);
+  --gold: #f59e0b;
+  --gold-bg: rgba(245, 158, 11, 0.12);
+  --purple: #8b5cf6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background-color: var(--bg);
+  color: var(--txt);
+  line-height: 1.6;
+  padding: 24px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #0d1833 0%, #090e1c 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.header-title { font-size: 1.5rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+.header-meta { color: var(--txt-dim); font-size: 0.85rem; margin-top: 4px; }
+.badge-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(16, 185, 129, 0.15); color: var(--bull);
+  border: 1px solid var(--bull-border); border-radius: 20px;
+  padding: 4px 14px; font-size: 0.8rem; font-weight: 600;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bull); box-shadow: 0 0 8px var(--bull); }
+.sec {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.sec-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 10px;
+}
+.sec-title-left { display: flex; align-items: center; gap: 10px; }
+.icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--accent-glow); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+}
+.conclusion-box {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.08));
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  color: #dbe4ff;
+}
+.conclusion-box b { color: #fff; font-weight: 700; }
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.kpi-card {
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.kpi-card:hover { transform: translateY(-2px); border-color: var(--border-sub); }
+.kpi-name { color: var(--txt-dim); font-size: 0.82rem; font-weight: 500; }
+.kpi-num { font-size: 1.4rem; font-weight: 700; margin: 4px 0 2px; }
+.kpi-pct { font-size: 0.95rem; font-weight: 700; }
+.kpi-amt { color: var(--txt-muted); font-size: 0.78rem; margin-top: 4px; }
+.up { color: var(--bull); }
+.down { color: var(--bear); }
+.flat { color: var(--txt-dim); }
+
+.con-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.con-row:last-child { border-bottom: none; }
+.con-sector { width: 110px; font-weight: 600; color: #fff; flex-shrink: 0; font-size: 0.92rem; }
+.bar-wrap {
+  flex: 1; height: 16px; display: flex; border-radius: 6px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+.bar-bull { background: linear-gradient(90deg, #059669, #10b981); }
+.bar-bear { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.con-stat { font-size: 0.8rem; color: var(--txt-dim); text-align: right; width: 220px; flex-shrink: 0; }
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  color: var(--txt-dim);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.views-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 14px;
+}
+.view-card {
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+.view-card:hover { border-color: var(--border-sub); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.view-user { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem; color: #fff;
+}
+.user-name { font-weight: 600; color: #fff; font-size: 0.95rem; }
+.user-tags { display: flex; gap: 6px; margin-top: 2px; }
+.tag-badge {
+  font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; border: 1px solid;
+}
+.tag-w3 { background: var(--gold-bg); color: var(--gold); border-color: rgba(245, 158, 11, 0.4); font-weight: 600; }
+.tag-w2 { background: rgba(59, 130, 246, 0.15); color: var(--accent); border-color: rgba(59, 130, 246, 0.4); }
+.tag-w1 { background: rgba(255, 255, 255, 0.08); color: var(--txt-dim); border-color: rgba(255, 255, 255, 0.15); }
+.tag-sector { background: rgba(139, 92, 246, 0.12); color: var(--purple); border-color: rgba(139, 92, 246, 0.3); }
+
+.dir-badge {
+  font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 8px; border: 1px solid;
+}
+.dir-bull { background: var(--bull-bg); color: var(--bull); border-color: var(--bull-border); }
+.dir-bear { background: var(--bear-bg); color: var(--bear); border-color: var(--bear-border); }
+.dir-neutral { background: rgba(255, 255, 255, 0.08); color: var(--txt-dim); border-color: var(--border); }
+
+.view-summary {
+  font-size: 0.88rem; color: #e2e8f0; line-height: 1.5; margin-bottom: 10px;
+}
+.view-details {
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+  margin-top: 6px;
+}
+.view-details summary {
+  font-size: 0.78rem;
+  color: var(--accent);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  outline: none;
+}
+.view-details summary:hover { text-decoration: underline; }
+.view-full-text {
+  font-size: 0.83rem;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.view-time { font-size: 0.72rem; color: var(--txt-muted); margin-top: 8px; text-align: right; }
+
+.news-item {
+  display: flex;
+  gap: 14px;
+  padding: 10px 6px;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.88rem;
+}
+.news-item:last-child { border-bottom: none; }
+.news-time { color: var(--txt-muted); font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+.news-content b { color: #fff; }
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.broker-card {
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.broker-name { font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.report-li {
+  list-style: none;
+  padding: 8px 0 8px 12px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+}
+.report-li b { color: #fff; font-size: 0.86rem; display: block; margin-bottom: 2px; }
+.report-meta { color: var(--txt-muted); font-size: 0.74rem; display: flex; gap: 8px; }
+
+.footer {
+  text-align: center;
+  color: var(--txt-muted);
+  font-size: 0.78rem;
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .con-stat { width: 120px; font-size: 0.72rem; }
+  .con-sector { width: 80px; font-size: 0.85rem; }
+  .views-grid { grid-template-columns: 1fr; }
+}
 """
 
 
 def render_html(data):
-    """结构化生成专业卡片 HTML（不再经 md 中转）。"""
-    date, ts = data["date"], data["ts"]
+    """生成具备高保真金融大屏、完整原文展开与动态筛选的专业 HTML。"""
+    date, ts = data.get("date", ""), data.get("ts", "")
     views = _zh_views(data)
     ov = insight.build_overview(views)
 
-    # 头像色池（按名字 hash 稳定取色）
-    palette = ["#5b8cff", "#2fd67f", "#ffc857", "#a78bfa", "#ff5d6c", "#3ec6d6", "#f78fb3", "#82c91e"]
-
+    # 调色盘
+    palette = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#84cc16"]
     def avatar_color(name):
         return palette[sum(ord(c) for c in name) % len(palette)]
 
@@ -284,161 +479,267 @@ def render_html(data):
         arrow, cls = _pct_arrow(pct)
         amt = _fmt_amount(it.get("amount"))
         kpis.append(
-            "<div class='kpi'><div class='name'>{name}</div>"
-            "<div class='num'>{price}</div>"
-            "<div class='pct {cls}'>{arrow}{pct}%</div>"
-            "<div class='amt'>{amt}</div></div>".format(
-                name=htmlmod.escape(it["name"]), price=htmlmod.escape(it.get("price") or "—"),
-                cls=cls, arrow=arrow, pct=htmlmod.escape(pct), amt=amt or "—"))
+            "<div class='kpi-card'>"
+            "<div class='kpi-name'>{name}</div>"
+            "<div class='kpi-num'>{price}</div>"
+            "<div class='kpi-pct {cls}'>{arrow} {pct}%</div>"
+            "<div class='kpi-amt'>成交额 {amt}</div>"
+            "</div>".format(
+                name=htmlmod.escape(it["name"]),
+                price=htmlmod.escape(it.get("price") or "—"),
+                cls=cls, arrow=arrow, pct=htmlmod.escape(pct),
+                amt=amt or "—"
+            )
+        )
 
-    # --- 共识行 ---
+    # --- 板块共识天平 ---
     cons = ""
-    for r in ov["rows"][:7]:
-        total = r["bull_n"] + r["bear_n"]
-        bull_w_ratio = int(r["bull_w"] * 100 / (r["bull_w"] + r["bear_w"])) if (r["bull_w"] + r["bear_w"]) else 50
-        bar = ("<div class='bar-b' style='width:%d%%'></div>" % bull_w_ratio +
-               "<div class='bar-s' style='width:%d%%'></div>" % (100 - bull_w_ratio))
-        names = "、".join(r["names"][:4]) or "—"
-        cons += ("<div class='con-row'><div class='cs'>{sector}</div>{bar}"
-                 "<div class='stat'>{n}人参与 · 多{bull}/空{bear} · {names}</div></div>").format(
-            sector=htmlmod.escape(r["sector"]), bar=bar, n=total,
-            bull=r["bull_n"], bear=r["bear_n"], names=htmlmod.escape(names))
+    for r in ov["rows"][:8]:
+        total_w = r["bull_w"] + r["bear_w"]
+        bull_ratio = int(r["bull_w"] * 100 / total_w) if total_w else 50
+        bear_ratio = 100 - bull_ratio
+        bar = (
+            "<div class='bar-bull' style='width:{b_ratio}%' title='多方权重 {bw}'></div>"
+            "<div class='bar-bear' style='width:{s_ratio}%' title='空方权重 {sw}'></div>"
+        ).format(b_ratio=bull_ratio, s_ratio=bear_ratio, bw=r["bull_w"], sw=r["bear_w"])
+        
+        names_str = "、".join(r["names"][:4]) or "—"
+        cons += (
+            "<div class='con-row'>"
+            "<div class='con-sector'>{sector}</div>"
+            "<div class='bar-wrap'>{bar}</div>"
+            "<div class='con-stat'>"
+            "<span style='color:{dir_col};font-weight:600;'>{side}</span> (多{bull}/空{bear}) · {names}"
+            "</div>"
+            "</div>"
+        ).format(
+            sector=htmlmod.escape(r["sector"]),
+            bar=bar,
+            dir_col="var(--bull)" if r["side"] == "看多" else "var(--bear)",
+            side=r["side"],
+            bull=r["bull_n"],
+            bear=r["bear_n"],
+            names=htmlmod.escape(names_str)
+        )
     if not cons:
-        cons = "<div class='con-row'><div class='cs'>—</div><div class='bar-wrap'></div><div class='stat'>暂无明确板块共识</div></div>"
+        cons = "<div class='con-row'><div class='con-sector'>—</div><div class='bar-wrap'></div><div class='con-stat'>暂无显著多空分歧</div></div>"
 
-    # --- 大V观点卡 ---
+    # --- 大V观点卡片（保留完整长文与展开详情） ---
     cards = []
-    for v in sorted(views, key=lambda x: -(x["weight"] or 1)):
-        d_badge = ("<span class='badge bull'>看多</span>" if v["direction"] == "bull"
-                   else ("<span class='badge bear'>看空</span>" if v["direction"] == "bear"
-                         else "<span class='badge neutral'>中性</span>"))
+    for v in sorted(views, key=lambda x: -(x.get("weight") or 1)):
+        d = v.get("direction", "neutral")
+        if d == "bull":
+            dir_cls = "dir-bull"
+            dir_txt = "▲ 看多"
+        elif d == "bear":
+            dir_cls = "dir-bear"
+            dir_txt = "▼ 看空"
+        else:
+            dir_cls = "dir-neutral"
+            dir_txt = "— 中性"
+
+        w = v.get("weight") or 1
+        w_cls = "tag-w3" if w >= 3 else ("tag-w2" if w == 2 else "tag-w1")
+        w_txt = "w%d 核心" % w if w >= 3 else ("w%d 重点" % w if w == 2 else "w%d" % w)
+
+        raw_name = v.get("name", "").split("（")[0]
+        full_text = v.get("full_text") or v.get("point") or ""
+        point = v.get("point") or ""
+
+        # 详情展开部分
+        details_html = ""
+        if full_text and (len(full_text) > len(point) or "\n" in full_text):
+            details_html = (
+                "<details class='view-details'>"
+                "<summary>展开完整实战推演全文（含逻辑细节）</summary>"
+                "<div class='view-full-text'>{full}</div>"
+                "</details>"
+            ).format(full=htmlmod.escape(full_text))
+
         cards.append(
-            "<div class='vcard'><div class='top'>"
-            "<div class='avatar' style='background:{av}'>{initial}</div>"
-            "<span class='who'>{name}</span>"
-            "<span class='badge b-w'>w{w}</span>"
-            "<span class='badge b-'>{sector}</span>{d_badge}"
-            "</div><div class='point'>{point}</div>"
-            "<div class='time'>{time}</div></div>".format(
-                av=avatar_color(v["name"]),
-                initial=htmlmod.escape(v["name"][:1]),
-                name=htmlmod.escape(v["name"].split("（")[0]),
-                w=v["weight"], sector=htmlmod.escape(v["sector"]),
-                d_badge=d_badge, point=htmlmod.escape(v["point"]),
-                time=htmlmod.escape(v["time"])))
+            "<div class='view-card' data-dir='{dir_val}' data-sector='{sec_val}'>"
+            "<div>"
+            "<div class='view-header'>"
+            "<div class='view-user'>"
+            "<div class='avatar' style='background:{av}'>{ini}</div>"
+            "<div>"
+            "<div class='user-name'>{name}</div>"
+            "<div class='user-tags'>"
+            "<span class='tag-badge {w_cls}'>{w_txt}</span>"
+            "<span class='tag-badge tag-sector'>{sector}</span>"
+            "</div></div></div>"
+            "<span class='dir-badge {dir_cls}'>{dir_txt}</span>"
+            "</div>"
+            "<div class='view-summary'>{point}</div>"
+            "{details}"
+            "</div>"
+            "<div class='view-time'>{time}</div>"
+            "</div>".format(
+                dir_val=d,
+                sec_val=htmlmod.escape(v.get("sector") or ""),
+                av=avatar_color(raw_name),
+                ini=htmlmod.escape(raw_name[:1]),
+                name=htmlmod.escape(raw_name),
+                w_cls=w_cls,
+                w_txt=w_txt,
+                sector=htmlmod.escape(v.get("sector") or "大盘"),
+                dir_cls=dir_cls,
+                dir_txt=dir_txt,
+                point=htmlmod.escape(point),
+                details=details_html,
+                time=htmlmod.escape(v.get("time") or "")
+            )
+        )
     if not cards:
-        cards.append("<div class='vcard'><div class='point'>本次无大V观点（cookie 失效或均为中性）</div></div>")
+        cards.append("<div class='view-card'><div class='view-summary'>本次抓取无明显大V观点更新</div></div>")
 
     # --- 要闻 ---
-    news = ""
+    news_html = ""
     for x in data.get("ths", [])[:12]:
         digest = (x.get("digest") or "").strip()
         title = htmlmod.escape(x.get("title") or "")
+        t_str = htmlmod.escape((x.get("time") or "")[:16])
         if digest:
-            body = "<b>{title}</b>：{digest}".format(title=title, digest=htmlmod.escape(digest[:110]))
+            body = "<b>{title}</b>：{digest}".format(title=title, digest=htmlmod.escape(digest[:130]))
         else:
             body = "<b>{title}</b>".format(title=title)
-        news += ("<div class='news'><div class='t'>{time}</div><div>{body}</div></div>").format(
-            time=htmlmod.escape((x.get("time") or "")[:16]), body=body)
+        news_html += (
+            "<div class='news-item'>"
+            "<div class='news-time'>{time}</div>"
+            "<div class='news-content'>{body}</div>"
+            "</div>"
+        ).format(time=t_str, body=body)
+    if not news_html:
+        news_html = "<div class='news-item'><div class='news-content'>当日暂无重大要闻</div></div>"
 
-    # --- 研报 ---
-    rpts = ""
+    # --- 券商研报 ---
+    rpts_html = ""
     for b in data.get("brokers", []):
-        if not b.get("reports"):
-            rpts += "<div class='rpt'><div class='org'>{org}</div><ul><li>当日无研报</li></ul></div>".format(
-                org=htmlmod.escape(b["name"]))
+        r_list = b.get("reports") or []
+        if not r_list:
             continue
         lis = []
-        for r in b["reports"][:5]:
+        for r in r_list[:4]:
             meta = []
             if r.get("rating"):
-                meta.append(r["rating"])
+                meta.append("评级: %s" % r["rating"])
             if r.get("author"):
-                meta.append(r["author"])
+                meta.append("分析师: %s" % r["author"])
             if r.get("pages"):
                 meta.append("%s页" % r["pages"])
-            m = "<span class='meta'>%s</span>" % (" · ".join(htmlmod.escape(x) for x in meta)) if meta else ""
-            lis.append("<li>{time} <b>{title}</b>{meta}</li>".format(
-                time=htmlmod.escape(r["time"][:10]),
-                title=htmlmod.escape(r["title"][:60]), meta=m))
-        rpts += "<div class='rpt'><div class='org'>{org}</div><ul>{lis}</ul></div>".format(
-            org=htmlmod.escape(b["name"]), lis="\n".join(lis))
+            meta_str = " · ".join(htmlmod.escape(m) for m in meta)
+            lis.append(
+                "<li class='report-li'>"
+                "<b>{title}</b>"
+                "<div class='report-meta'><span>{time}</span><span>{meta}</span></div>"
+                "</li>".format(
+                    title=htmlmod.escape(r.get("title") or ""),
+                    time=htmlmod.escape((r.get("time") or "")[:10]),
+                    meta=meta_str
+                )
+            )
+        rpts_html += (
+            "<div class='broker-card'>"
+            "<div class='broker-name'><span>🏛️ {name}</span><span style='font-size:0.75rem;color:var(--gold);'>精选研报</span></div>"
+            "<ul>{lis}</ul>"
+            "</div>"
+        ).format(name=htmlmod.escape(b.get("name") or ""), lis="".join(lis))
+    if not rpts_html:
+        rpts_html = "<div class='broker-card'><div class='broker-name'>当日暂无券商研报收录</div></div>"
 
-    # 提醒
-    warns_html = ""
-    warns = [w for w in (data.get("warnings") or []) if w]
-    for src in ("xueqiu", "zhihu"):
-        s = data.get(src, {})
-        if isinstance(s, dict) and s.get("note"):
-            warns.append(s["note"])
-    if warns:
-        warns_html = ("<div class='sec'><div class='sec-title'><div class='ico'>⚠</div>注意事项</div>"
-                      + "".join("<div class='news'><div>{w}</div></div>".format(w=htmlmod.escape(w[:80])) for w in warns[:3])
-                      + "</div>")
+    # JS 筛选器脚本
+    script = """
+    <script>
+    function filterCards(type, val, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cards = document.querySelectorAll('.view-card');
+      cards.forEach(card => {
+        if (type === 'all') {
+          card.style.display = 'flex';
+        } else if (type === 'dir') {
+          card.style.display = card.dataset.dir === val ? 'flex' : 'none';
+        } else if (type === 'sector') {
+          card.style.display = card.dataset.sector.includes(val) ? 'flex' : 'none';
+        }
+      });
+    }
+    </script>
+    """
 
-    # --- 同花顺大V ---
-    ths_bv = data.get("ths_bigv", {})
-    ths_cards = ""
-    if isinstance(ths_bv, dict) and ths_bv.get("accounts"):
-        for a in ths_bv["accounts"]:
-            if not a["items"]:
-                continue
-            it = a["items"][0]
-            body = htmlmod.escape(("%s %s" % (it["title"] or "", it["text"] or "")).strip()[:90])
-            ths_cards += ("<div class='vcard'><div class='top'>"
-                          "<div class='avatar' style='background:{av}'>{ini}</div>"
-                          "<span class='who'>{name}</span><span class='badge b-w'>w{w}</span>"
-                          "<span class='badge b-'>同花顺</span></div>"
-                          "<div class='point'>{body}</div>"
-                          "<div class='time'>{time}</div></div>").format(
-                av=avatar_color(a["name"]), ini=htmlmod.escape(a["name"][:1]),
-                name=htmlmod.escape(a["name"]), w=a["weight"],
-                body=body, time=htmlmod.escape(it["time"]))
-    ths_note = (ths_bv.get("note") or "").strip() if isinstance(ths_bv, dict) else ""
-    if ths_cards:
-        sec_inner = "<div class='v-grid'>{cards}</div>".format(cards=ths_cards)
-        if ths_note:
-            sec_inner += "<div class='news'><div>{n}</div></div>".format(n=htmlmod.escape(ths_note))
-        warns_html += ("<div class='sec'><div class='sec-title'><div class='ico'>🏮</div>同花顺大V观点"
-                       "（在线直抓）</div>{inner}</div>").format(inner=sec_inner)
-    elif ths_note:
-        warns_html += ("<div class='sec'><div class='sec-title'><div class='ico'>🏮</div>同花顺大V</div>"
-                       "<div class='news'><div>{n}</div></div></div>").format(n=htmlmod.escape(ths_note))
+    conclusion_text = ov.get("conclusion", "")
+    if conclusion_text:
+        conclusion_html = conclusion_text.replace("**", "<b>").replace("**", "</b>")
+    else:
+        conclusion_html = "今日市场处于震荡博弈阶段，未形成绝对单边共识。"
 
     body = (
-        "<div class='masthead'><div><h1>📊 多平台大V财经观点统计</h1>"
-        "<div class='sub'>数据截止：{ts} · GitHub Actions 全云自动抓取 · 非投资建议，据此操作风险自负</div></div>"
-        "<span class='tag'>{date}</span></div>"
+        "<div class='header'>"
+        "<div>"
+        "<div class='header-title'>⚡ 知乎/多平台大V 财经观点全景深度研报</div>"
+        "<div class='header-meta'>数据截止：{ts} · 贝叶斯加权与多空收敛引擎驱动 · 非投资建议，据此操作风险自负</div>"
+        "</div>"
+        "<div class='badge-live'><div class='dot'></div> 自动全云抓取 ({date})</div>"
+        "</div>"
 
-        "<div class='sec'><div class='sec-title'><div class='ico'>🎯</div>今日观点结论</div>"
-        "<div class='conclusion'>{conclusion}</div>"
-        "<div class='kpi-grid'>{kpis}</div></div>"
+        "<div class='sec'>"
+        "<div class='sec-title'><div class='sec-title-left'><div class='icon'>🎯</div>核心观点与大盘盘面</div></div>"
+        "<div class='conclusion-box'>{conclusion}</div>"
+        "<div class='kpi-grid'>{kpis}</div>"
+        "</div>"
 
-        "<div class='sec'><div class='sec-title'><div class='ico'>🧭</div>板块共识（多空人数 · 权重ΣW）</div>"
-        "{cons}</div>"
+        "<div class='sec'>"
+        "<div class='sec-title'><div class='sec-title-left'><div class='icon'>⚖️</div>板块多空共识天平（多空人数 · 权重 ΣW）</div></div>"
+        "{cons}"
+        "</div>"
 
-        "<div class='sec'><div class='sec-title'><div class='ico'>💬</div>大V观点（按权重排序，已归纳）</div>"
-        "<div class='v-grid'>{cards}</div></div>"
+        "<div class='sec'>"
+        "<div class='sec-title'>"
+        "<div class='sec-title-left'><div class='icon'>💬</div>大V深度推演与核心持仓逻辑</div>"
+        "<span style='font-size:0.8rem;color:var(--txt-dim);'>支持展开阅读完整长文</span>"
+        "</div>"
+        "<div class='filters'>"
+        "<button class='filter-btn active' onclick=\"filterCards('all','',this)\">全部大V</button>"
+        "<button class='filter-btn' onclick=\"filterCards('dir','bull',this)\">▲ 仅看看多</button>"
+        "<button class='filter-btn' onclick=\"filterCards('dir','bear',this)\">▼ 仅看看空</button>"
+        "<button class='filter-btn' onclick=\"filterCards('sector','大盘',this)\">大盘多空</button>"
+        "<button class='filter-btn' onclick=\"filterCards('sector','医药',this)\">医药/CRO</button>"
+        "<button class='filter-btn' onclick=\"filterCards('sector','新能源',this)\">新能源</button>"
+        "<button class='filter-btn' onclick=\"filterCards('sector','创业板',this)\">创业板</button>"
+        "</div>"
+        "<div class='views-grid'>{cards}</div>"
+        "</div>"
 
-        "<div class='sec'><div class='sec-title'><div class='ico'>📰</div>当日要闻</div>{news}</div>"
+        "<div class='sec'>"
+        "<div class='sec-title'><div class='sec-title-left'><div class='icon'>🏛️</div>金牌券商深度研报</div></div>"
+        "<div class='reports-grid'>{rpts}</div>"
+        "</div>"
 
-        "<div class='sec'><div class='sec-title'><div class='ico'>📄</div>券商研报（东财）</div>{rpts}</div>"
+        "<div class='sec'>"
+        "<div class='sec-title'><div class='sec-title-left'><div class='icon'>🌐</div>全球宏观要闻与突发事件</div></div>"
+        "{news}"
+        "</div>"
 
-        "{warns_html}"
-
-        "<div class='foot'>Actions 自动生成 · 数据仅供研究参考 · 归档见 Actions Artifact</div>"
+        "<div class='footer'>Actions 深度研报生成引擎 · 详细实战推演归档 · 仅供学习与量化研究参考</div>"
+        "{script}"
     ).format(
-        date=htmlmod.escape(date), ts=htmlmod.escape(ts),
-        conclusion=ov["conclusion"].replace("**", "<b>").replace("**", "</b>") if ov["conclusion"] else "当日无明确方向信号",
-        kpis="\n".join(kpis), cons=cons, cards="\n".join(cards),
-        news=news or "<div class='news'><div>当日无新闻</div></div>",
-        rpts=rpts or "<div class='news'><div>当日无研报</div></div>",
-        warns_html=warns_html)
+        date=htmlmod.escape(date),
+        ts=htmlmod.escape(ts),
+        conclusion=conclusion_html,
+        kpis="".join(kpis),
+        cons=cons,
+        cards="".join(cards),
+        rpts=rpts_html,
+        news=news_html,
+        script=script
+    )
 
-    return ("<!doctype html><html lang='zh'><head><meta charset='utf-8'>"
-            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-            "<title>{date} 财经观点统计</title><style>{css}</style></head>"
-            "<body>{body}</body></html>").format(date=date, css=CSS, body=body)
+    return (
+        "<!doctype html><html lang='zh'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>{date} 知乎大V财经观点全景深度研报</title><style>{css}</style></head>"
+        "<body>{body}</body></html>"
+    ).format(date=date, css=CSS, body=body)
 
 
 if __name__ == "__main__":

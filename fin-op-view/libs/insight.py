@@ -95,6 +95,8 @@ def build_views(accounts):
             "sector": sector,
             "direction": direction,
             "point": summarize_text(text),
+            "full_text": text,
+            "items": items,
             "time": latest.get("time", ""),
         })
     return views
