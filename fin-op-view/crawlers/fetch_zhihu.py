@@ -220,7 +220,7 @@ def fetch(cookie=None):
                     ts = str(ct)
                 text = _target_text(target)
                 if text:
-                    entry["items"].append({"time": ts, "text": text[:300]})
+                    entry["items"].append({"time": ts, "text": text.strip()})
             entry["weight"] = _weight_of_name(a["name"])
         except Exception as e:
             entry["status"] = "expired"

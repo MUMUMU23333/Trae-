@@ -79,25 +79,45 @@ def summarize_text(text, maxlen=42):
 
 def build_views(accounts):
     """accounts: [{'name','weight','items':[{'text','time'}]}]
-    返回: [{name, weight, sector, direction, point, time}] 仅保留有观点者。"""
+    返回: [{name, weight, sector, direction, point, full_text, items, time}] 包含全部观点时间线。"""
     views = []
     for a in accounts:
-        items = [it for it in (a.get("items") or []) if it.get("text")]
-        if not items:
+        raw_items = [it for it in (a.get("items") or []) if it.get("text")]
+        if not raw_items:
             continue
-        # 取最新一条（items 按时间升序，取最后一条）
-        latest = items[-1]
-        text = latest.get("text") or ""
-        sector, direction = classify(text)
+        
+        parsed_items = []
+        best_dir = "neutral"
+        best_sec = "大盘"
+        
+        for it in raw_items:
+            t = (it.get("text") or "").strip()
+            sec, d = classify(t)
+            parsed_items.append({
+                "time": it.get("time", ""),
+                "text": t,
+                "sector": sec,
+                "direction": d,
+                "point": summarize_text(t)
+            })
+            if d != "neutral":
+                best_dir = d
+                best_sec = sec
+
+        latest = parsed_items[-1]
+        # 如果最新一条是 neutral 但前面有明确看多/看空，保持主方向定调
+        final_dir = best_dir if best_dir != "neutral" else latest["direction"]
+        final_sec = best_sec if best_sec != "大盘" else latest["sector"]
+        
         views.append({
             "name": a["name"],
             "weight": a.get("weight") or 1,
-            "sector": sector,
-            "direction": direction,
-            "point": summarize_text(text),
-            "full_text": text,
-            "items": items,
-            "time": latest.get("time", ""),
+            "sector": final_sec,
+            "direction": final_dir,
+            "point": latest["point"],
+            "full_text": latest["text"],
+            "items": parsed_items,
+            "time": latest["time"],
         })
     return views
 
